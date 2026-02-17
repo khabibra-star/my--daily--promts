@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Prompt Master: 12 Дней ИИ</title>
+    <style>
+        :root {
+            --bg: #0d1117;
+            --card-bg: #161b22;
+            --primary: #58a6ff;
+            --gold: #f1c40f;
+            --text: #c9d1d9;
+            --success: #238636;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            margin: 0;
+            min-height: 100vh;
+        }
+
+        .header { text-align: center; margin-bottom: 25px; width: 100%; }
+        h1 { font-size: 22px; color: #fff; margin: 0; text-transform: uppercase; letter-spacing: 2px; }
+
+        /* Прогресс */
+        .progress-box { width: 100%; max-width: 350px; margin: 15px auto; }
+        .bar-bg { background: #30363d; height: 8px; border-radius: 4px; overflow: hidden; }
+        .bar-fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
+        .stats { font-size: 12px; margin-top: 5px; display: flex; justify-content: space-between; }
+
+        /* Сетка карт */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .card { aspect-ratio: 3/4; perspective: 1000px; }
+        .card-inner {
+            width: 100%; height: 100%; position: relative;
+            transform-style: preserve-3d; transition: transform 0.6s;
+        }
+        .card.is-flipped .card-inner { transform: rotateY(180deg); }
+
+        .side {
+            position: absolute; width: 100%; height: 100%;
+            backface-visibility: hidden; border-radius: 12px;
+            display: flex; flex-direction: column; align-items: center;
+            justify-content: center; padding: 8px; box-sizing: border-box;
+            border: 1px solid #30363d;
+        }
+
+        .front { background: var(--card-bg); font-weight: bold; font-size: 14px; color: var(--primary); }
+        .back { background: #fff; color: #0d1117; transform: rotateY(180deg); text-align: center; }
+
+        .prompt-text {
+            font-size: 10px; line-height: 1.3; margin-bottom: 8px;
+            filter: blur(4px); transition: filter 0.3s;
+            overflow: hidden; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical;
+        }
+        .revealed .prompt-text { filter: blur(0); }
+
+        .btn {
+            background: #000; color: #fff; border: none; padding: 6px;
+            border-radius: 4px; font-size: 9px; cursor: pointer; width: 100%;
+            font-weight: bold; text-transform: uppercase;
+        }
+
+        .card.locked { opacity: 0.2; filter: grayscale(1); pointer-events: none; }
+
+        /* Финальный блок */
+        #finish {
+            display: none; margin-top: 30px; padding: 25px;
+            background: #161b22; border: 2px solid var(--gold);
+            border-radius: 20px; text-align: center; max-width: 350px;
+            animation: pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes pop { from { transform: scale(0.8); opacity: 0; } }
+
+        .cta {
+            display: block; margin-top: 15px; padding: 15px;
+            background: var(--gold); color: #000; text-decoration: none;
+            font-weight: 800; border-radius: 10px; font-size: 14px;
+        }
+
+        .share-btn {
+            margin-top: 10px; background: none; border: 1px solid var(--primary);
+            color: var(--primary); padding: 8px; border-radius: 8px;
+            font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>PROMPT MASTER</h1>
+        <div class="progress-box">
+            <div class="bar-bg"><div class="bar-fill" id="bar"></div></div>
+            <div class="stats">
+                <span id="pText">0/12 Карт</span>
+                <span id="daysLeft">Ждем завтра</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid" id="grid"></div>
+
+    <div id="finish">
+        <h2 style="color:var(--gold); margin:0;">ЛЕГЕНДАРНО! 🏆</h2>
+        <p style="font-size:13px;">Ты собрал все секретные промпты. Теперь ты на голову выше 99% пользователей нейросетей.</p>
+        <a href="https://t.me/ril404" class="cta">ПОЛУЧИТЬ БАЗУ ИЗ 500+ ПРОМПТОВ</a>
+        <button class="share-btn" onclick="shareApp()">📤 Поделиться челленджем</button>
+    </div>
+
+    <script>
+        const PROMPTS = [
+            "Действуй как опытный редактор. Перепиши мой текст так, чтобы он стал живым, убрал канцеляризмы и бил точно в боли аудитории.",
+            "Ты эксперт по маркетингу. Проанализируй мой продукт и предложи 5 нестандартных идей для вирального видео в TikTok.",
+            "Сформулируй 10 уточняющих вопросов, которые помогут мне лучше раскрыть тему личного бренда перед написанием статьи.",
+            "Преврати этот список сухих фактов в захватывающую историю (сторителлинг) для email-рассылки.",
+            "Действуй как Senior Python Developer. Оптимизируй этот код и добавь комментарии для новичка.",
+            "Составь подробный план обучения на месяц для освоения графического дизайна с нуля, учитывая 1 час занятий в день.",
+            "Представь, что ты психолог. Дай 3 техники борьбы с синдромом самозванца при переходе в новую сферу.",
+            "Напиши структуру продающего вебинара по модели AIDA для курса по мобильной фотографии.",
+            "Создай таблицу сравнения 3 популярных нейросетей для генерации изображений: плюсы, минусы и стоимость.",
+            "Действуй как SMM-стратег. Составь контент-план на неделю для кофейни, чтобы увеличить вовлеченность в комментариях.",
+            "Напиши промпт для Midjourney, чтобы получить фотореалистичный портрет киборга в стиле киберпанк, освещение 8k.",
+            "Ты — ИИ-ассистент. Проверь мою логику в этом бизнес-плане и найди 3 слабых места, которые могут привести к убыткам."
+        ];
+
+        let count = parseInt(localStorage.getItem('unlockedCount')) || 0;
+        let lastDate = localStorage.getItem('lastUnlockDate') || "";
+        const today = new Date().toDateString();
+
+        function updateUI() {
+            document.getElementById('bar').style.width = (count / 12 * 100) + "%";
+            document.getElementById('pText').innerText = `${count}/12 Карт открыто`;
+            if (count >= 12) document.getElementById('finish').style.display = 'block';
+            document.getElementById('daysLeft').innerText = (lastDate === today && count < 12) ? "Приходи завтра" : "Карта доступна";
+        }
+
+        const grid = document.getElementById('grid');
+        for (let i = 1; i <= 12; i++) {
+            const card = document.createElement('div');
+            const isOpened = i <= count;
+            const canOpen = (i === count + 1 && lastDate !== today);
+            
+            card.className = `card ${isOpened ? 'is-flipped revealed' : (canOpen ? '' : 'locked')}`;
+            card.innerHTML = `
+                <div class="card-inner">
+                    <div class="side front">ДЕНЬ ${i}</div>
+                    <div class="side back">
+                        <div class="prompt-text" id="p-${i}">${PROMPTS[i-1]}</div>
+                        <button class="btn" onclick="copyPrompt(event, ${i})">КОПИРОВАТЬ</button>
+                    </div>
+                </div>
+            `;
+            if (canOpen) card.onclick = () => {
+                card.classList.add('is-flipped');
+                count = i;
+                lastDate = today;
+                localStorage.setItem('unlockedCount', count);
+                localStorage.setItem('lastUnlockDate', lastDate);
+                setTimeout(updateUI, 600);
+            };
+            grid.appendChild(card);
+        }
+
+        function copyPrompt(e, i) {
+            e.stopPropagation();
+            const text = document.getElementById(`p-${i}`).innerText;
+            navigator.clipboard.writeText(text);
+            e.target.closest('.card').classList.add('revealed');
+            const b = e.target;
+            b.innerText = "ГОТОВО!"; b.style.background = "#238636";
+            setTimeout(() => { b.innerText = "КОПИРОВАТЬ"; b.style.background = "#000"; }, 2000);
+        }
+
+        function shareApp() {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Prompt Master Challenge',
+                    text: 'Я прошел 12-дневный челлендж по промптам! Попробуй и ты:',
+                    url: window.location.href
+                });
+            } else {
+                alert("Скопируй ссылку и отправь другу: " + window.location.href);
+            }
+        }
+
+        updateUI();
+    </script>
+</body>
+</html>
