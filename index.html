@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Prompt Master 12</title>
+    <title>Prompt Master 12 — Твои готовые ключи к ИИ</title>
     <style>
         :root {
             --bg: #0b0c10;
@@ -11,102 +11,138 @@
             --primary: #66fcf1;
             --gold: #f1c40f;
             --text: #c5c6c7;
+            --white: #ffffff;
         }
 
         body {
-            font-family: 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg);
             color: var(--text);
             display: flex; flex-direction: column; align-items: center;
             padding: 20px; margin: 0; min-height: 100vh;
-            -webkit-tap-highlight-color: transparent; /* Убирает синюю рамку при клике на Android */
+            -webkit-tap-highlight-color: transparent;
         }
 
-        .header { text-align: center; margin-bottom: 20px; user-select: none; }
+        .header { text-align: center; margin-bottom: 30px; user-select: none; }
+        h1 { color: var(--primary); margin: 0; font-size: 28px; letter-spacing: 2px; }
+        p.subtitle { font-size: 14px; opacity: 0.8; margin-top: 5px; }
         
-        /* Прогресс */
-        .progress-box { width: 280px; margin: 10px auto; }
-        .bar-bg { background: #222; height: 10px; border-radius: 5px; overflow: hidden; }
-        .bar-fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.8s; }
+        /* Прогресс-бар */
+        .progress-box { width: 280px; margin: 15px auto; }
+        .bar-bg { background: #1a1a1a; height: 8px; border-radius: 10px; overflow: hidden; border: 1px solid #333; }
+        .bar-fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 0 10px var(--primary); }
+        .progress-text { font-size: 12px; margin-top: 8px; font-weight: bold; color: var(--primary); }
 
-        /* Сетка */
+        /* Сетка карточек */
         .grid {
             display: grid; grid-template-columns: repeat(3, 1fr);
-            gap: 12px; width: 100%; max-width: 400px;
+            gap: 15px; width: 100%; max-width: 450px;
         }
 
-        .card { aspect-ratio: 3/4; perspective: 1000px; user-select: none; }
+        .card { aspect-ratio: 3/4; perspective: 1000px; user-select: none; cursor: pointer; }
         .card-inner {
             width: 100%; height: 100%; position: relative;
             transform-style: preserve-3d; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
         }
+        
+        /* Эффект при наведении на доступную карту */
+        .card:not(.locked):hover .card-inner {
+            box-shadow: 0 0 15px var(--primary);
+        }
+
         .card.is-flipped .card-inner { transform: rotateY(180deg); }
 
         .side {
             position: absolute; width: 100%; height: 100%;
-            backface-visibility: hidden; border-radius: 12px;
+            backface-visibility: hidden; border-radius: 15px;
             display: flex; flex-direction: column; align-items: center;
-            justify-content: center; padding: 10px; box-sizing: border-box;
+            justify-content: center; padding: 12px; box-sizing: border-box;
             border: 1px solid #45a29e;
         }
 
-        .front { background: var(--card-bg); color: var(--primary); font-weight: bold; }
-        .back { background: #fff; color: #000; transform: rotateY(180deg); }
+        .front { 
+            background: var(--card-bg); 
+            color: var(--primary); 
+            font-weight: bold; 
+            font-size: 18px;
+            box-shadow: inset 0 0 20px rgba(102, 252, 241, 0.1);
+        }
+        
+        .back { 
+            background: var(--white); 
+            color: #000; 
+            transform: rotateY(180deg); 
+            justify-content: space-between;
+        }
 
         .prompt-box {
-            font-size: 10px; line-height: 1.2; margin-bottom: 10px;
-            filter: blur(5px); transition: filter 0.4s;
+            font-size: 10px; line-height: 1.3; text-align: left;
+            overflow-y: auto; width: 100%; max-height: 100px;
+            filter: blur(4px); transition: filter 0.4s;
+            word-wrap: break-word;
         }
         .revealed .prompt-box { filter: blur(0); }
 
         .btn {
-            background: #000; color: #fff; border: none; padding: 7px;
-            border-radius: 5px; font-size: 9px; cursor: pointer; width: 100%;
-            font-weight: bold;
+            background: #000; color: #fff; border: none; padding: 10px;
+            border-radius: 8px; font-size: 10px; cursor: pointer; width: 100%;
+            font-weight: bold; transition: 0.3s; margin-top: 5px;
         }
 
-        .card.locked { opacity: 0.25; filter: grayscale(1); pointer-events: none; }
+        .card.locked { opacity: 0.2; filter: grayscale(1); pointer-events: none; }
 
-        /* Финал */
+        /* Финальный блок */
         #finish {
-            display: none; margin-top: 30px; padding: 20px;
+            display: none; margin-top: 40px; padding: 25px;
             background: #1f2833; border: 2px solid var(--gold);
-            border-radius: 15px; text-align: center; width: 100%; max-width: 320px;
-            animation: fadeIn 1s;
+            border-radius: 20px; text-align: center; width: 100%; max-width: 350px;
+            animation: slideUp 0.8s ease-out;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
         .cta {
-            display: block; margin-top: 15px; padding: 15px;
+            display: block; margin-top: 20px; padding: 18px;
             background: var(--gold); color: #000; text-decoration: none;
-            font-weight: bold; border-radius: 8px;
+            font-weight: bold; border-radius: 12px; font-size: 16px;
+            transition: 0.3s; box-shadow: 0 4px 15px rgba(241, 196, 15, 0.3);
         }
+        .cta:hover { transform: scale(1.05); }
     </style>
 </head>
 <body>
 
     <div class="header">
         <h1>PROMPT MASTER</h1>
+        <p class="subtitle">12 дней — 12 секретных ключей к ИИ</p>
         <div class="progress-box">
             <div class="bar-bg"><div class="bar-fill" id="bar"></div></div>
-            <div style="font-size:12px; margin-top:5px;" id="pText">0/12 Пройдено</div>
+            <div class="progress-text" id="pText">ЗАГРУЗКА...</div>
         </div>
     </div>
 
     <div class="grid" id="grid"></div>
 
     <div id="finish">
-        <h2 style="color:var(--gold); margin:0;">ПОБЕДА! 🏆</h2>
-        <p style="font-size:13px;">Теперь ты мастер промптов. Готов к полной базе знаний?</p>
+        <h2 style="color:var(--gold); margin:0;">ВЫ ГУРУ ИИ! 🏆</h2>
+        <p style="font-size:14px; line-height:1.5;">Вы собрали базу из 12 мощных инструментов. Хотите забрать полный пак из 500+ промптов для бизнеса и жизни?</p>
         <a href="https://t.me/ril404" class="cta">ЗАБРАТЬ 500+ ПРОМПТОВ</a>
     </div>
 
     <script>
         const PROMPTS = [
-            "Действуй как редактор...", "Идеи для сторис...", "Код на Python...", 
-            "Нейминг бренда...", "Объясни квантовую...", "План тренировок...",
-            "Сценарий ролика...", "Пересказ книги...", "Карьерный коуч...", 
-            "Рецепт ужина...", "Email-рассылка...", "Структура статьи..."
+            "Напиши пост для соцсетей на тему [Твоя тема]. Используй формулу AIDA. Сделай текст дерзким, добавь юмор и 3 цепляющих заголовка.",
+            "Промпт для фото: [Объект] в стиле киберпанк, неоновое освещение (фиолетовый и бирюзовый), гиперреализм, объектив 85mm, свет как в кино.",
+            "Действуй как эксперт по продажам. Напиши 5 УТП для [Твой продукт]. Формула: Помогаю [Аудитория] получить [Результат] без [Боли].",
+            "Перепиши этот текст в стиле Стива Джобса: вдохновляюще, просто, фокус на опыте и короткие бьющие в цель фразы: [Ваш текст].",
+            "Сценарий для Reels на 15 сек. Тема: [Тема]. 0-3 сек: визуальный хук, 3-10 сек: решение, 10-15 сек: призыв к действию.",
+            "Действуй как карьерный коуч. Я дам описание вакансии и резюме. Найди 3 слабых места и напиши, как их обыграть на собеседовании.",
+            "Проанализируй отзыв: '[Текст]'. Определи тональность и напиши ответ, который превратит негатив в лояльность клиента.",
+            "Переведи текст на [Язык], сохранив культурный контекст и сленг, чтобы он звучал как от носителя языка: [Текст].",
+            "Составь план обучения по теме [Тема] на 30 дней. Разбей по неделям и дай 1 практическое задание на каждый день.",
+            "Действуй как фин-аналитик. Создай таблицу учета расходов фрилансера: налоги, софт, подушка. Дай совет, как откладывать 20%.",
+            "Придумай 10 виральных идей для Shorts по теме [Тема]. Укажи провокационный заголовок и хук для первых 3 секунд.",
+            "БОНУС: Действуй как Prompt Engineer. Возьми мой простой запрос '[Твой запрос]' и преврати его в идеальный профессиональный промпт."
         ];
 
         let count = parseInt(localStorage.getItem('unlockedCount')) || 0;
@@ -115,7 +151,7 @@
 
         function update() {
             document.getElementById('bar').style.width = (count / 12 * 100) + "%";
-            document.getElementById('pText').innerText = count + "/12 Пройдено";
+            document.getElementById('pText').innerText = `ПРОЙДЕНО: ${count} ИЗ 12`;
             if (count >= 12) document.getElementById('finish').style.display = 'block';
         }
 
@@ -128,7 +164,7 @@
             card.className = `card ${isOpened ? 'is-flipped revealed' : (canOpen ? '' : 'locked')}`;
             card.innerHTML = `
                 <div class="card-inner">
-                    <div class="side front">ДЕНЬ ${i}</div>
+                    <div class="side front">${i} ДЕНЬ</div>
                     <div class="side back">
                         <div class="prompt-box" id="p-${i}">${PROMPTS[i-1]}</div>
                         <button class="btn" id="btn-${i}" onclick="copyPrompt(event, ${i})">КОПИРОВАТЬ</button>
@@ -137,6 +173,7 @@
             `;
             if (canOpen) card.onclick = () => {
                 card.classList.add('is-flipped');
+                card.classList.add('revealed');
                 count = i; lastDate = today;
                 localStorage.setItem('unlockedCount', count);
                 localStorage.setItem('lastUnlockDate', lastDate);
@@ -150,24 +187,23 @@
             const text = document.getElementById(`p-${i}`).innerText;
             const btn = document.getElementById(`btn-${i}`);
             
-            // Основной метод копирования
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(text).then(() => successCopy(btn, i));
-            } else {
-                // Запасной метод для старых браузеров
-                const el = document.createElement('textarea');
-                el.value = text; document.body.appendChild(el);
-                el.select(); document.execCommand('copy');
-                document.body.removeChild(el);
-                successCopy(btn, i);
+            const tempTextArea = document.createElement('textarea');
+            tempTextArea.value = text;
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            try {
+                document.execCommand('copy');
+                btn.innerText = "СКОПИРОВАНО!";
+                btn.style.background = "#238636";
+            } catch (err) {
+                console.error('Ошибка копирования', err);
             }
-        }
-
-        function successCopy(btn, i) {
-            document.getElementById(`p-${i}`).parentElement.parentElement.parentElement.classList.add('revealed');
-            const original = btn.innerText;
-            btn.innerText = "ГОТОВО!"; btn.style.background = "#238636";
-            setTimeout(() => { btn.innerText = original; btn.style.background = "#000"; }, 2000);
+            document.body.removeChild(tempTextArea);
+            
+            setTimeout(() => {
+                btn.innerText = "КОПИРОВАТЬ";
+                btn.style.background = "#000";
+            }, 2000);
         }
 
         update();
